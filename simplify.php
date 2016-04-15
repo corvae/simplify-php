@@ -61,40 +61,31 @@ function simplifyRadialDistance($points, $sqTolerance) { // distance-based simpl
 
 
 // simplification using optimized Douglas-Peucker algorithm with recursion elimination
+function simplifyDPStep($points, $first, $last, $sqTolerance, &$simplified){
+    $maxSqDist = $sqTolerance;
+    
+    for ($i = $first + 1; $i < $last; $i++) {
+        $sqDist = getSquareSegmentDistance($points[$i], $points[$first], $points[$last]);
+        if ($sqDist > $maxSqDist) {
+            $index = $i;
+            $maxSqDist = $sqDist;
+        }
+    }
+    
+    if ($maxSqDist > $sqTolerance) {
+        if($index - $first > 1) simplifyDPStep($points, $first, $index, $sqTolerance, $simplified);
+        array_push($simplified, $points[$index]);
+        if($last - $index > 1) simplifyDPStep($points, $index, $last, $sqTolerance, $simplified);
+    }
+}
 function simplifyDouglasPeucker($points, $sqTolerance) {
 	$len = count($points);
-	$markers = array_fill ( 0 , $len - 1, null);
-	$first = 0;
 	$last = $len - 1;
-	$stack = array();
-	$newPoints  = array();
     
-	$markers[$first] = $markers[$last] = 1;
-	while ($last) {
-		$maxSqDist = 0;
-		for ($i = $first + 1; $i < $last; $i++) {
-			$sqDist = getSquareSegmentDistance($points[$i], $points[$first], $points[$last]);
-			if ($sqDist > $maxSqDist) {
-				$index = $i;
-				$maxSqDist = $sqDist;
-			}
-		}
-		if ($maxSqDist > $sqTolerance) {
-			$markers[$index] = 1;
-			array_push($stack, $first);
-			array_push($stack, $index);
-			array_push($stack, $index);
-			array_push($stack, $last);
-		}
-		$last = array_pop($stack);
-		$first = array_pop($stack);
-	}
-	for ($i = 0; $i < $len; $i++) {
-		if ($markers[$i]) {
-			array_push($newPoints, $points[$i]);
-		}
-	}
-	return $newPoints;
+    $simplified = array($points[0]);
+    simplifyDPStep($points, 0, $last, $sqTolerance, $simplified);
+    array_push($simplified, $points[$last]);
+    
+    return $simplified;
 }
-
 ?>
