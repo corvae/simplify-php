@@ -1,6 +1,6 @@
 <?php
 
-function simplify($points, $tolerance = 0.00001, $highestQuality = false) {
+function simplify($points, $tolerance = 1, $highestQuality = false) {
 	if (count($points) < 2) return $points;
 	$sqTolerance = $tolerance * $tolerance;
 	if (!$highestQuality) {
